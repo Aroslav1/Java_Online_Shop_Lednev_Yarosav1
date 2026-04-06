@@ -1,12 +1,27 @@
 public class Main {
     public static void main(String[] args) {
-// TODO catalog - Сделать новый каталог для магазина, 1 поле - ID будет идти в формате int, 2 Title - в формате String,
-//  3 Price - в формате double. Сделать полную инкапсуляцию и конструктор, в каталоге создаем 2 объекта(каталог1/2)
 
-        Catalog catalog = new Catalog("Арбуз", 123, 65.0);
-        System.out.println("ID - " + catalog.getID() + ". Название продукта - " + catalog.getTitle() + ". Стоимость - " + catalog.getPrise());
+        GardenItem shovel = new GardenItem("VIVO X300", "Телефон", 1500.0);
+        Electronic lamp = new Electronic("Лампа", "Настольная", 2100.0);
+        MobileDevays phone = new MobileDevays("Лопата", "Садовый инвентарь", 95000.0);
 
-        Catalog catalog1 = new Catalog("Дыня", 456, 50.0);
-        System.out.println("ID - " + catalog1.getID() + ". Название продукта - " + catalog1.getTitle() + ". Стоимость - " + catalog1.getPrise());
+        System.out.println("ID - " + shovel.getId() + ". Название - " + shovel.getTitle() + ". Описание - " + shovel.getDescription());
+        System.out.println("ID - " + lamp.getId() + ". Название - " + lamp.getTitle() + ". Описание - " + lamp.getDescription());
+        System.out.println("ID - " + phone.getId() + ". Название - " + phone.getTitle() + ". Описание - " + phone.getDescription());
+
+        Category cat = new Category("Электроника", "Все гаджеты");
+        System.out.println("Категория: " + cat.getTitle() + " (ID: " + cat.getId() + ")");
     }
 }
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 2
+// 2-1) Класс Product - "ДОБАВИТЬ" должно быть поле description - описание.
+// Product class должна быть обстракцией.
+// 2-2) Category - "ДОБАВИТЬ" 1 - id, 2 - title, 3 - description.
+// 2-3) автогенерация id, каждый новый шаг - новое id которое генерируется самостоятельно.
+// 2-4) наследники Electronic, GardenItem.
+// 2-5) создаем новый класс - "MobileDevays" он должен быть наследником наследником электроники - "Electronic".
+// 2-6) создаем несколько объектов из новых классов в main добавляем.
