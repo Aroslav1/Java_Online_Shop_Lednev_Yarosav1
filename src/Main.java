@@ -1,23 +1,25 @@
 public class Main {
     public static void main(String[] args) {
+        Product shop = new Product();
 
-        GardenItem shovel = new GardenItem("Крабы", "Камчатский", 1500.0);
-        Electronic lamp = new Electronic("Зарядное устройство", "Настольная", 2100.0);
+        GardenItem shovel = new GardenItem("Лопата", "Садовая", 1500.0);
+        Electronic lamp = new Electronic("Лампа", "Настольная", 2100.0);
         MobileDevays phone = new MobileDevays("VIVO X300", "Смартфон", 95000.0);
 
-        System.out.println("ID - " + shovel.getId() + ". Название - " + shovel.getTitle() + ". Описание - " + shovel.getDescription());
-        System.out.println("ID - " + lamp.getId() + ". Название - " + lamp.getTitle() + ". Описание - " + lamp.getDescription());
-        System.out.println("ID - " + phone.getId() + ". Название - " + phone.getTitle() + ". Описание - " + phone.getDescription());
+        shovel.ADD_Category();
+        lamp.ADD_Category();
+        phone.ADD_Category();
 
-        Category cat = new Category("Электроника", "Все гаджеты", 0);
-        System.out.println("Категория: " + cat.getTitle() + " (ID: " + cat.getId() + ")\n");
+        System.out.println();
 
-        cat.ADD_Category();
-        phone.SHOP_Category();
+        shop.addProduct(shovel);
+        shop.addProduct(lamp);
+        shop.addProduct(phone);
 
-        System.out.println("\n--- ИТОГО ---");
-        System.out.println("Количество категорий: " + Category.getCategoryCount());
-        System.out.println("Количество sub категории: " + Category.getSubCategoryCount());
+        shop.showAllProducts();
+
+        System.out.println("\nИТОГО");
+        System.out.println("Общее количество созданных подкатегорий: " + Category.getSubCategoryCount());
     }
 }
 
@@ -38,6 +40,14 @@ public class Main {
 // -----------------------
 // Этап 3
 // 3.1) Нужно создать класс Category (Он уже создан), добавить ADD_Category и SHOP_Category.
-// 3.2) Потом нужно создать счетчик в Category: 1) сколько категорий, 2) сколько sub категории
+// 3.2) Потом нужно создать счетчик в Category: 1) сколько категорий, 2) сколько sub категории.
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 4
+// 4.1) Надо с Category добавить абстрактный метод Show info, который мы будем переобразовывать.
+// 4.2) Создать несколько разных товаров в Product в списке в виде Array list.
+// 4.3) Надо в Show info чтобы вести список показать на экране.
 
 
