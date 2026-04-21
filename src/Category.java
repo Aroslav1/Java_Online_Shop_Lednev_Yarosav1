@@ -1,35 +1,38 @@
-public abstract class Category {
-    private static int idCounter = 1;
-    private static int categoryCount = 0;
-    private static int subCategoryCount = 0;
+import java.util.Objects;
 
+public abstract class Category {
+    private static int idCon = 0;
     private int id;
     private String title;
+    private Double price;
     private String description;
-    protected double price;
 
-    public Category(String title, String description, double price) {
-        this.id = idCounter++;
+    public Category(String title, Double price, String description) {
+        idCon++;
+        this.id = idCon;
         this.title = title;
-        this.description = description;
         this.price = price;
-
-        if (this.getClass() == Category.class) {
-            categoryCount++;
-        } else {
-            subCategoryCount++;
-        }
+        this.description = description;
     }
 
     public abstract void showInfo();
 
-    public void ADD_Category() {
-        System.out.println("Категория " + title + " добавлена.");
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || !(o instanceof Category)) return false;
+        Category category = (Category) o;
+        return Objects.equals(title, category.title) &&
+                Objects.equals(price, category.price);
     }
 
-    public static int getCategoryCount() { return categoryCount; }
-    public static int getSubCategoryCount() { return subCategoryCount; }
-    public int getId() { return id; }
-    public String getTitle() { return title; }
-    public String getDescription() { return description; }
+    @Override
+    public int hashCode() {
+        return Objects.hash(title, price);
+    }
+
+    public int get_id() { return id; }
+    public String get_Title() { return title; }
+    public Double get_Price() { return price; }
+    public String get_Description() { return description; }
 }

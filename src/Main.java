@@ -1,27 +1,31 @@
 public class Main {
     public static void main(String[] args) {
-        Product shop = new Product();
+        GardenItem shovel1 = new GardenItem("Лопата", 1200.0, "Садовая");
+        Electronic lamp = new Electronic("Лампа", 25000.0, "Настольная");
+        MobileDevays phone = new MobileDevays("VIVO X300", 95000.0, "Смартфон");
 
-        GardenItem shovel = new GardenItem("Лопата", "Садовая", 1500.0);
-        Electronic lamp = new Electronic("Лампа", "Настольная", 2100.0);
-        MobileDevays phone = new MobileDevays("VIVO X300", "Смартфон", 95000.0);
+        GardenItem shovel2 = new GardenItem("Лопата", 1200.0, "Садовая");
 
-        shovel.ADD_Category();
-        lamp.ADD_Category();
-        phone.ADD_Category();
+        System.out.println("Проверка сравнения объектов");
+        if (shovel1.equals(shovel2)) {
+            System.out.println("Результат: Лопата 1 и Лопата 2 идентичны по названию и цене.");
+        } else {
+            System.out.println("Результат: Товары разные.");
+        }
 
-        System.out.println();
+        System.out.println("\nПроверка оплаты");
+        System.out.println("Статус оплаты телефона до: " + (phone.isPaid() ? "Оплачен" : "Не оплачен"));
 
-        shop.addProduct(shovel);
-        shop.addProduct(lamp);
-        shop.addProduct(phone);
+        double payment = 95000.0;
+        phone.pay(payment);
 
-        shop.showAllProducts();
+        System.out.println("Статус оплаты телефона после: " + (phone.isPaid() ? "Оплачен" : "Не оплачен"));
 
-        System.out.println("\nИТОГО");
-        System.out.println("Общее количество созданных подкатегорий: " + Category.getSubCategoryCount());
+        Product.showAllProducts();
+        Catalog.printStats();
     }
 }
+
 
 
 //TODO Задача ОнлайнШопинг,
@@ -51,3 +55,14 @@ public class Main {
 // 4.3) Надо в Show info чтобы вести список показать на экране.
 
 
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 5
+// 5.1)
+// Payble - помогает объектам товаров (3 бастрактных, возвращает double - GetFinalPrice, void - pay с параметром double(amount), bool - isPaid)
+// Financible - помогает объектам клиентам
+// 1 - double - ChekBalance (Без параметра)
+// 2 - bool - HasEnouthMoney (double amount)
+// 3 - String - GetFinalsesStatus (без параметра)
+// 5.2) необходимо все классы расширять при помощи Hashcode, equals, instanceof и подобного.
+// 5.3) создаем сравнение объектам по цвету по названию и т.д.
