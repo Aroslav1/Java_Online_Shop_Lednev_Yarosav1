@@ -1,28 +1,45 @@
+import java.util.*;
+
 public class Main {
     public static void main(String[] args) {
-        GardenItem shovel1 = new GardenItem("Лопата", 1200.0, "Садовая");
-        Electronic lamp = new Electronic("Лампа", 25000.0, "Настольная");
-        MobileDevays phone = new MobileDevays("VIVO X300", 95000.0, "Смартфон");
 
-        GardenItem shovel2 = new GardenItem("Лопата", 1200.0, "Садовая");
+        new GardenItem("Секатор", 800.0, "Инструмент");
+        new GardenItem("Лопата", 1200.0, "Садовая");
+        new Electronic("Куханная лампа", 6000.0, "Куханная");
+        new Electronic("Лампа", 5000.0, "Настольная");
+        new MobileDevays("VIVO X300", 95000.0, "Смартфон");
+        new MobileDevays("iPhone 17", 110000.0, "Смартфон");
 
-        System.out.println("Проверка сравнения объектов");
-        if (shovel1.equals(shovel2)) {
-            System.out.println("Результат: Лопата 1 и Лопата 2 идентичны по названию и цене.");
-        } else {
-            System.out.println("Результат: Товары разные.");
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("1 - Сортировать по названию");
+        System.out.println("2 - Сортировать по цене");
+        int sortChoice = scanner.nextInt();
+
+        if (sortChoice == 1) Collections.sort(Product.productList);
+        else Product.productList.sort(Product.PriceComparator);
+
+        System.out.println("\nДоступные товары:");
+        for (int i = 0; i < Product.productList.size(); i++) {
+            System.out.print("[" + i + "] ");
+            Product.productList.get(i).showInfo();
         }
 
-        System.out.println("\nПроверка оплаты");
-        System.out.println("Статус оплаты телефона до: " + (phone.isPaid() ? "Оплачен" : "Не оплачен"));
+        System.out.println("\n   Ручное сравнение товаров   ");
+        System.out.print("Введите номер первого товара: ");
+        int index1 = scanner.nextInt();
 
-        double payment = 95000.0;
-        phone.pay(payment);
+        System.out.print("Введите номер второго товара: ");
+        int index2 = scanner.nextInt();
 
-        System.out.println("Статус оплаты телефона после: " + (phone.isPaid() ? "Оплачен" : "Не оплачен"));
+        Product p1 = Product.getProductByIndex(index1);
+        Product p2 = Product.getProductByIndex(index2);
 
-        Product.showAllProducts();
-        Catalog.printStats();
+        if (p1 != null && p2 != null) {
+            Product.safeCompare(p1, p2);
+        } else {
+            System.out.println("Ошибка: Неверный номер товара.");
+        }
     }
 }
 
@@ -66,3 +83,12 @@ public class Main {
 // 3 - String - GetFinalsesStatus (без параметра)
 // 5.2) необходимо все классы расширять при помощи Hashcode, equals, instanceof и подобного.
 // 5.3) создаем сравнение объектам по цвету по названию и т.д.
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 6
+// 6.1) Добавить в проект сортировку категорий товаров Comparable для категорий.
+// 6.2) Нужно реализовать Comparator чтобы пользователи могли сортировать по собственному желанию.
+// 6.3) Создаем пользовательское меню, критерии сортировки.
+// 6.4) Сравнение товаров выбирают товар и нужно сравнить, нельзя сравнивать телефон с цветком поэтому нужна безопастность.

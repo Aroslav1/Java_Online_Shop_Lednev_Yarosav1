@@ -1,6 +1,6 @@
 import java.util.Objects;
 
-public abstract class Category {
+public abstract class Category implements Comparable<Category> {
     private static int idCon = 0;
     private int id;
     private String title;
@@ -13,6 +13,11 @@ public abstract class Category {
         this.title = title;
         this.price = price;
         this.description = description;
+    }
+
+    @Override
+    public int compareTo(Category other) {
+        return this.title.compareToIgnoreCase(other.title);
     }
 
     public abstract void showInfo();
