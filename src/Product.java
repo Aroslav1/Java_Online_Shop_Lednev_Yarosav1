@@ -15,21 +15,26 @@ public class Product extends Category implements Payble {
             Double.compare(p1.get_Price(), p2.get_Price());
 
     public static void safeCompare(Product p1, Product p2) {
-        System.out.println("\n   Проверка безопасности сравнения   ");
+        System.out.println("\n   Результат сравнения   ");
 
         if (!p1.getClass().equals(p2.getClass())) {
-            System.out.println("ОШИБКА: Несовместимые типы товаров!");
-            System.out.println("Нельзя сравнить [" + p1.getClass().getSimpleName() +
-                    "] и [" + p2.getClass().getSimpleName() + "]");
+            System.out.println("ОШИБКА: Нельзя сравнивать [" + p1.getClass().getSimpleName() +
+                    "] и [" + p2.getClass().getSimpleName() + "]!");
+            return;
+        }
+
+        System.out.println("Сравниваем товары категории: " + p1.getClass().getSimpleName());
+
+        if (p1.get_Price() > p2.get_Price()) {
+            System.out.println("ЛУЧШИЙ ВЫБОР (Премиум): " + p1.get_Title() + " (" + p1.get_Price() + " руб.)");
+        } else if (p2.get_Price() > p1.get_Price()) {
+            System.out.println("ЛУЧШИЙ ВЫБОР (Премиум): " + p2.get_Title() + " (" + p2.get_Price() + " руб.)");
         } else {
-            int result = p1.compareTo(p2);
-            System.out.println("Сравнение товаров одного типа [" + p1.getClass().getSimpleName() + "]:");
-            if (result == 0) {
-                System.out.println("Результат: Товары идентичны по названию.");
-            } else if (result < 0) {
-                System.out.println("Результат: " + p1.get_Title() + " идет перед " + p2.get_Title());
+            System.out.println("Цена одинаковая. Сравниваем информативность...");
+            if (p1.get_Description().length() >= p2.get_Description().length()) {
+                System.out.println("ЛУЧШИЙ ВЫБОР (Больше инфо): " + p1.get_Title());
             } else {
-                System.out.println("Результат: " + p2.get_Title() + " идет перед " + p1.get_Title());
+                System.out.println("ЛУЧШИЙ ВЫБОР (Больше инфо): " + p2.get_Title());
             }
         }
     }
