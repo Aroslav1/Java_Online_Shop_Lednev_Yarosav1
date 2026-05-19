@@ -1,7 +1,7 @@
 public class Catalog {
-    private int id;
-    private String title;
-    private double price;
+    private final int id;
+    private final String title;
+    private final double price;
 
     private static int categoryCount = 0;
     private static int subCategoryCount = 0;
@@ -12,8 +12,13 @@ public class Catalog {
         this.price = price;
     }
 
-    public static void incrementCategory() { categoryCount++; }
-    public static void incrementSubCategory() { subCategoryCount++; }
+    public static void incrementCategory() {
+        categoryCount++;
+    }
+
+    public static void incrementSubCategory() {
+        subCategoryCount++;
+    }
 
     public static void printStats() {
         System.out.println("\nСтатистика каталога ");

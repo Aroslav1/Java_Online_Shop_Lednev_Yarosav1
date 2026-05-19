@@ -3,26 +3,51 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
 
-        new GardenItem("Секатор", 800.0, "Инструмент для обрезки веток");
-        new GardenItem("Лопата", 1200.0, "Садовая лопата для копки");
-        new Electronic("Кухонная лампа", 6000.0, "Кухонная светодиодная лампа");
-        new Electronic("Настольная лампа", 5000.0, "Лампа для рабочего стола");
-        new MobileDevays("VIVO X300", 95000.0, "Смартфон с отличной камерой");
-        new MobileDevays("iPhone 17", 110000.0, "Флагманский смартфон");
+        CategoryManager categoryManager = CategoryManager.getInstance();
+
+        OrderFactory orderFactory = new OrderFactory();
+
+        Product product1 = new GardenItem("Секатор", 800.0, "Инструмент для обрезки веток");
+        Product product2 = new GardenItem("Лопата", 1200.0, "Садовая лопата для копки");
+        Product product3 = new Electronic("Кухонная лампа", 6000.0, "Кухонная светодиодная лампа");
+        Product product4 = new Electronic("Настольная лампа", 5000.0, "Лампа для рабочего стола");
+        Product product5 = new MobileDevays("VIVO X300", 95000.0, "Смартфон с отличной камерой");
+        Product product6 = new MobileDevays("iPhone 17", 110000.0, "Флагманский смартфон");
+
+        DiscountCalculator discountCalculator = new ClientDiscountCalculator();
 
         System.out.println("   ПРОВЕРКА СТАТУСОВ КЛИЕНТОВ   ");
 
+        ClientOutputStrategy vipStrategy = new VipClientOutputStrategy();
+        ClientOutputStrategy regularStrategy = new RegularClientOutputStrategy();
+
         ClientStatusChecker vipChecker = status -> status == ClientStatus.VIP || status == ClientStatus.GOLD;
 
-        Product.checkClientStatus(ClientStatus.NEW, vipChecker, "Иван Петров");
-        Product.checkClientStatus(ClientStatus.REGULAR, vipChecker, "Мария Сидорова");
-        Product.checkClientStatus(ClientStatus.VIP, vipChecker, "Алексей Козлов");
-        Product.checkClientStatus(ClientStatus.GOLD, vipChecker, "Хакан Эмрах Аган");
+        checkClientWithStrategy(ClientStatus.NEW, vipChecker, "Иван Петров", vipStrategy);
+        checkClientWithStrategy(ClientStatus.REGULAR, vipChecker, "Мария Сидорова", regularStrategy);
+        checkClientWithStrategy(ClientStatus.VIP, vipChecker, "Алексей Козлов", vipStrategy);
+        checkClientWithStrategy(ClientStatus.GOLD, vipChecker, "Хакан Эмрах Аган", vipStrategy);
 
-        ClientStatusChecker newClientChecker = status -> status == ClientStatus.NEW;
-        System.out.println("\n   Поиск новых клиентов   ");
-        Product.checkClientStatus(ClientStatus.NEW, newClientChecker, "Дмитрий Новиков");
-        Product.checkClientStatus(ClientStatus.REGULAR, newClientChecker, "Ольга Смирнова");
+        System.out.println("\n   Создание заказов   ");
+
+        Order order1 = orderFactory.createOrder(product1, ClientStatus.VIP, discountCalculator);
+        Order order2 = orderFactory.createOrder(product5, ClientStatus.GOLD, discountCalculator);
+        Order order3 = orderFactory.createOrder(product3, ClientStatus.REGULAR, discountCalculator);
+
+        order1.displayOrderInfo();
+        order2.displayOrderInfo();
+        order3.displayOrderInfo();
+
+        System.out.println("\n   ЧЕК ПОКУПКИ   ");
+        Receipt receipt = new Receipt(
+                UUID.randomUUID().toString(),
+                new Date(),
+                List.of(order1, order2),
+                discountCalculator.calculateDiscount(ClientStatus.VIP, order1.getFinalPrice()) +
+                        discountCalculator.calculateDiscount(ClientStatus.GOLD, order2.getFinalPrice())
+        );
+
+        receipt.displayReceipt();
 
         System.out.println("\n   СТАТУСЫ   ");
 
@@ -31,9 +56,7 @@ public class Main {
         Arrays.stream(statuses).forEach(s -> System.out.println("  - " + s));
 
         Product.showProductsByPriceRange(5000, 100000);
-
         Product.showProductsByType(MobileDevays.class);
-
         Product.showStatistics();
 
         List<Product> expensiveProducts = Product.productList.stream()
@@ -56,6 +79,8 @@ public class Main {
             System.out.println("5. Обновить статус заказа");
             System.out.println("6. Фильтр товаров по цене");
             System.out.println("7. Показать статистику");
+            System.out.println("8. Найти первый товар по критерию");
+            System.out.println("9. Показать созданные заказы");
             System.out.println("0. Завершить работу");
             System.out.print("Выберите действие: ");
 
@@ -70,12 +95,12 @@ public class Main {
 
             switch (choice) {
                 case 1:
-                    Collections.sort(Product.productList);
+                    Product.sortByName();
                     Product.showAllProducts();
                     break;
 
                 case 2:
-                    Product.productList.sort(Product.PriceComparator);
+                    Product.sortByPrice();
                     Product.showAllProducts();
                     break;
 
@@ -99,9 +124,7 @@ public class Main {
                 case 4:
                     System.out.print("Введите название товара для поиска: ");
                     String searchTerm = scanner.nextLine();
-                    List<Product> found = Product.productList.stream()
-                            .filter(p -> p.get_Title().toLowerCase().contains(searchTerm.toLowerCase()))
-                            .toList();
+                    List<Product> found = Product.findByName(searchTerm);
 
                     System.out.println("\nРезультаты поиска:");
                     if (found.isEmpty()) {
@@ -146,6 +169,15 @@ public class Main {
                     Product.showStatistics();
                     break;
 
+                case 8:
+                    findFirstProductDemo(scanner);
+                    break;
+
+                case 9:
+                    System.out.println("\n   СОЗДАННЫЕ ЗАКАЗЫ   ");
+                    OrderFactory.displayAllOrders();
+                    break;
+
                 case 0:
                     isRunning = false;
                     break;
@@ -156,6 +188,63 @@ public class Main {
             }
         }
         scanner.close();
+    }
+
+    private static void checkClientWithStrategy(ClientStatus status, ClientStatusChecker checker,
+                                                String clientName, ClientOutputStrategy strategy) {
+        if (checker.checkStatus(status)) {
+            strategy.output(clientName, status);
+        } else {
+            System.out.println(clientName + " не подходит под указанный критерий");
+        }
+    }
+
+    private static void findFirstProductDemo(Scanner scanner) {
+        System.out.println("\n   ПОИСК ПЕРВОГО ТОВАРА   ");
+        System.out.println("Выберите критерий поиска:");
+        System.out.println("1. Первый товар дороже указанной цены");
+        System.out.println("2. Первый товар из категории Electronic");
+        System.out.println("3. Первый товар с названием, начинающимся на букву");
+        System.out.print("Ваш выбор: ");
+
+        int choice = scanner.nextInt();
+        scanner.nextLine();
+
+        switch (choice) {
+            case 1:
+                System.out.print("Введите минимальную цену: ");
+                double minPrice = scanner.nextDouble();
+                Product.findFirstMoreExpensiveThan(minPrice)
+                        .ifPresentOrElse(
+                                p -> System.out.println("Найден первый товар дороже " + minPrice +
+                                        " руб.: " + p.get_Title() + " (" + p.get_Price() + " руб.)"),
+                                () -> System.out.println("Товаров дороже " + minPrice + " руб. не найдено")
+                        );
+                break;
+
+            case 2:
+                Product.findFirstByType(Electronic.class)
+                        .ifPresentOrElse(
+                                p -> System.out.println("Найден первый электронный товар: " +
+                                        p.get_Title() + " (" + p.get_Price() + " руб.)"),
+                                () -> System.out.println("Электронные товары не найдены")
+                        );
+                break;
+
+            case 3:
+                System.out.print("Введите букву: ");
+                String letter = scanner.nextLine();
+                Product.findFirstStartingWith(letter)
+                        .ifPresentOrElse(
+                                p -> System.out.println("Найден первый товар на букву '" + letter +
+                                        "': " + p.get_Title() + " (" + p.get_Price() + " руб.)"),
+                                () -> System.out.println("Товаров на букву '" + letter + "' не найдено")
+                        );
+                break;
+
+            default:
+                System.out.println("Неверный выбор!");
+        }
     }
 }
 
@@ -217,3 +306,38 @@ public class Main {
 // 7.2) Добавленные enum применяем в коде.
 // 7.3) Создаем минимум один функциональный интерфейс (реализовать в main(обязательно через lambda)) (Проверка статуса клиента).
 // 7.4) Реализовать пользовательский интерфейс, работаем через StreamAPI, работаем с коллекциями и масивом.
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 8 +
+// 8.1) Добавляем StreamAPI.
+// 8.2) Расширяете пользовательское меню.
+// 8.3) Просмотр списка заказов
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 9 +
+// 9.1) Фильтрациюя при помощи StreamAPI (first find).
+// 9.2) Использовать SOLID - все принципы SOLID во всем коде.
+
+
+//TODO Задача ОнлайнШопинг,
+// -----------------------
+// Этап 10
+// 10.1) Применяете FactoryPattern используем для создания заказов товаров.
+// 10.2) StrategyPattern используем, делаем переключатель для вывода клиента.
+// 10.3) Singleton - фиксировать один объект во всем коде (Category).
+// 10.4) DependencyInjection - на уровне интерфейса прописывает класс.
+// 10.5) Immutable object - использовать для создания чека покупки (создать для этого новый объект, который будет сохранять покупки).
+// ---Отметки---
+// Памятка о созданных классах и измененых классах чтобы я не путался и не путал другие классы
+// Order.java - FactoryPattern                   - Создан класс заказа
+// OrderFactory.java - FactoryPattern            - Создана фабрика заказов
+// ClientOutputStrategy.java - StrategyPattern   - Стратегии вывода клиентов
+// DiscountCalculator.java - DependencyInjection - Интерфейс и реализация скидок
+// Receipt.java - ImmutableObject	             - Чек покупки
+// Category.java - Singleton                     - Добавлен CategoryManager
+// Product.java	                                 - Добавлен clientStatus
+// Main.java                                     - Интеграция всех Pattern

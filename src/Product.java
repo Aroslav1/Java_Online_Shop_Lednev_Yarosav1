@@ -1,19 +1,35 @@
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Product extends Category implements Payble {
-    public static ArrayList<Product> productList = new ArrayList<>();
+    public static final List<Product> productList = new ArrayList<>();
     private boolean isPaid = false;
     private OrderStatus orderStatus = OrderStatus.PENDING;
+    private ClientStatus clientStatus = ClientStatus.NEW;
 
     public Product(String title, Double price, String description) {
         super(title, price, description);
         productList.add(this);
     }
 
-    public static Comparator<Product> PriceComparator = (p1, p2) ->
-            Double.compare(p1.get_Price(), p2.get_Price());
+    public static void sortByName() {
+        productList.sort(Comparator.naturalOrder());
+    }
+
+    public static void sortByPrice() {
+        productList.sort(Comparator.comparingDouble(Product::get_Price));
+    }
+
+    public static void sortByPriceDescending() {
+        productList.sort(Comparator.comparingDouble(Product::get_Price).reversed());
+    }
+
+    public static Comparator<Product> getPriceComparator() {
+        return Comparator.comparingDouble(Product::get_Price);
+    }
 
     public static void checkClientStatus(ClientStatus status, ClientStatusChecker checker, String clientName) {
         if (checker.checkStatus(status)) {
@@ -54,6 +70,30 @@ public class Product extends Category implements Payble {
             return productList.get(index);
         }
         return null;
+    }
+
+    public static Optional<Product> findFirstMoreExpensiveThan(double minPrice) {
+        return productList.stream()
+                .filter(p -> p.get_Price() > minPrice)
+                .findFirst();
+    }
+
+    public static Optional<Product> findFirstByType(Class<?> type) {
+        return productList.stream()
+                .filter(p -> p.getClass().equals(type))
+                .findFirst();
+    }
+
+    public static Optional<Product> findFirstStartingWith(String letter) {
+        return productList.stream()
+                .filter(p -> p.get_Title().toLowerCase().startsWith(letter.toLowerCase()))
+                .findFirst();
+    }
+
+    public static List<Product> findByName(String searchTerm) {
+        return productList.stream()
+                .filter(p -> p.get_Title().toLowerCase().contains(searchTerm.toLowerCase()))
+                .toList();
     }
 
     public static void showProductsByPriceRange(double min, double max) {
@@ -102,6 +142,14 @@ public class Product extends Category implements Payble {
 
     public OrderStatus getOrderStatus() {
         return orderStatus;
+    }
+
+    public ClientStatus getClientStatus() {
+        return clientStatus;
+    }
+
+    public void setClientStatus(ClientStatus clientStatus) {
+        this.clientStatus = clientStatus;
     }
 
     @Override
