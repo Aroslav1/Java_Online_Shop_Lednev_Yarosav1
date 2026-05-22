@@ -36,11 +36,17 @@ class Order implements Payble {
         System.out.println("  Статус: " + status.getDescription());
     }
 
+    public void purchase() {
+        this.isPaid = true;
+        this.status = OrderStatus.PAID;
+    }
+
     public String getOrderId() { return orderId; }
     public Product getProduct() { return product; }
     public ClientStatus getClientStatus() { return clientStatus; }
     public double getFinalPrice() { return finalPrice; }
     public double getOriginalPrice() { return originalPrice; }
+    public OrderStatus getStatus() { return status; }
 
     @Override
     public void pay(double amount) {

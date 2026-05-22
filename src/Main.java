@@ -1,11 +1,14 @@
 import java.util.*;
 
 public class Main {
+    private static OrderFactory orderFactory = new OrderFactory();
+    private static DiscountCalculator discountCalculator = new ClientDiscountCalculator();
+    private static Scanner scanner = new Scanner(System.in);
+    private static List<Receipt> receipts = new ArrayList<>();
+
     public static void main(String[] args) {
 
         CategoryManager categoryManager = CategoryManager.getInstance();
-
-        OrderFactory orderFactory = new OrderFactory();
 
         Product product1 = new GardenItem("Секатор", 800.0, "Инструмент для обрезки веток");
         Product product2 = new GardenItem("Лопата", 1200.0, "Садовая лопата для копки");
@@ -13,8 +16,6 @@ public class Main {
         Product product4 = new Electronic("Настольная лампа", 5000.0, "Лампа для рабочего стола");
         Product product5 = new MobileDevays("VIVO X300", 95000.0, "Смартфон с отличной камерой");
         Product product6 = new MobileDevays("iPhone 17", 110000.0, "Флагманский смартфон");
-
-        DiscountCalculator discountCalculator = new ClientDiscountCalculator();
 
         System.out.println("   ПРОВЕРКА СТАТУСОВ КЛИЕНТОВ   ");
 
@@ -28,26 +29,22 @@ public class Main {
         checkClientWithStrategy(ClientStatus.VIP, vipChecker, "Алексей Козлов", vipStrategy);
         checkClientWithStrategy(ClientStatus.GOLD, vipChecker, "Хакан Эмрах Аган", vipStrategy);
 
-        System.out.println("\n   Создание заказов   ");
+        System.out.println("\n   Создание заказов для ВСЕХ товаров   ");
 
         Order order1 = orderFactory.createOrder(product1, ClientStatus.VIP, discountCalculator);
-        Order order2 = orderFactory.createOrder(product5, ClientStatus.GOLD, discountCalculator);
-        Order order3 = orderFactory.createOrder(product3, ClientStatus.REGULAR, discountCalculator);
+        Order order2 = orderFactory.createOrder(product2, ClientStatus.REGULAR, discountCalculator);
+        Order order3 = orderFactory.createOrder(product3, ClientStatus.GOLD, discountCalculator);
+        Order order4 = orderFactory.createOrder(product4, ClientStatus.NEW, discountCalculator);
+        Order order5 = orderFactory.createOrder(product5, ClientStatus.GOLD, discountCalculator);
+        Order order6 = orderFactory.createOrder(product6, ClientStatus.VIP, discountCalculator);
 
+        System.out.println("\n   ВСЕ СОЗДАННЫЕ ЗАКАЗЫ   ");
         order1.displayOrderInfo();
         order2.displayOrderInfo();
         order3.displayOrderInfo();
-
-        System.out.println("\n   ЧЕК ПОКУПКИ   ");
-        Receipt receipt = new Receipt(
-                UUID.randomUUID().toString(),
-                new Date(),
-                List.of(order1, order2),
-                discountCalculator.calculateDiscount(ClientStatus.VIP, order1.getFinalPrice()) +
-                        discountCalculator.calculateDiscount(ClientStatus.GOLD, order2.getFinalPrice())
-        );
-
-        receipt.displayReceipt();
+        order4.displayOrderInfo();
+        order5.displayOrderInfo();
+        order6.displayOrderInfo();
 
         System.out.println("\n   СТАТУСЫ   ");
 
@@ -67,7 +64,6 @@ public class Main {
         System.out.println("\nДорогие товары (>10000 руб.), отсортированные по убыванию:");
         expensiveProducts.forEach(p -> System.out.println("  - " + p.get_Title() + ": " + p.get_Price() + " руб."));
 
-        Scanner scanner = new Scanner(System.in);
         boolean isRunning = true;
 
         while (isRunning) {
@@ -81,6 +77,8 @@ public class Main {
             System.out.println("7. Показать статистику");
             System.out.println("8. Найти первый товар по критерию");
             System.out.println("9. Показать созданные заказы");
+            System.out.println("10. Купить товар (создать чек)");
+            System.out.println("11. Показать историю чеков");
             System.out.println("0. Завершить работу");
             System.out.print("Выберите действие: ");
 
@@ -167,6 +165,7 @@ public class Main {
 
                 case 7:
                     Product.showStatistics();
+                    Catalog.getInstance().printStats();
                     break;
 
                 case 8:
@@ -178,8 +177,17 @@ public class Main {
                     OrderFactory.displayAllOrders();
                     break;
 
+                case 10:
+                    purchaseProductMenu();
+                    break;
+
+                case 11:
+                    displayReceiptsHistory();
+                    break;
+
                 case 0:
                     isRunning = false;
+                    System.out.println("До свидания!");
                     break;
 
                 default:
@@ -188,6 +196,124 @@ public class Main {
             }
         }
         scanner.close();
+    }
+
+    private static void purchaseProductMenu() {
+        List<Order> orders = OrderFactory.getOrders();
+
+        if (orders.isEmpty()) {
+            System.out.println("\n Нет созданных заказов! Сначала создайте заказы.");
+            return;
+        }
+
+        System.out.println("\n   ПОКУПКА ТОВАРА   ");
+        System.out.println("Выберите статус клиента для расчета скидки:");
+
+        ClientStatus[] statuses = ClientStatus.values();
+        for (int i = 0; i < statuses.length; i++) {
+            System.out.println(i + ". " + statuses[i].getTitle() + " (скидка: " + statuses[i].getDiscount() + "%)");
+        }
+        System.out.print("Ваш выбор: ");
+
+        int statusChoice = scanner.nextInt();
+        if (statusChoice < 0 || statusChoice >= statuses.length) {
+            System.out.println(" Неверный выбор статуса!");
+            return;
+        }
+        ClientStatus selectedStatus = statuses[statusChoice];
+
+        System.out.println("\n Доступные заказы:");
+        boolean hasUnpaidOrders = false;
+        for (int i = 0; i < orders.size(); i++) {
+            Order order = orders.get(i);
+            String paidStatus = order.isPaid() ? " ОПЛАЧЕН" : " НЕ ОПЛАЧЕН";
+            String discountInfo = " (скидка: " + order.getClientStatus().getDiscount() + "%)";
+            System.out.println("[" + i + "] " + order.getProduct().get_Title() +
+                    " - " + order.getFinalPrice() + " руб." + discountInfo +
+                    " - " + paidStatus);
+            if (!order.isPaid()) {
+                hasUnpaidOrders = true;
+            }
+        }
+
+        if (!hasUnpaidOrders) {
+            System.out.println("\n Все заказы уже оплачены! Нечего покупать.");
+            return;
+        }
+
+        System.out.print("\nВведите номер заказа для покупки (или -1 для выхода): ");
+        int orderIndex = scanner.nextInt();
+
+        if (orderIndex == -1) {
+            return;
+        }
+
+        if (orderIndex >= 0 && orderIndex < orders.size()) {
+            Order selectedOrder = orders.get(orderIndex);
+
+            if (selectedOrder.isPaid()) {
+                System.out.println(" Этот заказ уже оплачен!");
+                return;
+            }
+
+            double discountAmount = discountCalculator.calculateDiscount(selectedStatus, selectedOrder.getOriginalPrice());
+            double newFinalPrice = selectedOrder.getOriginalPrice() - discountAmount;
+
+            System.out.println("\n ПОДТВЕРЖДЕНИЕ ПОКУПКИ:");
+            System.out.println("  Товар: " + selectedOrder.getProduct().get_Title());
+            System.out.println("  Исходная цена: " + selectedOrder.getOriginalPrice() + " руб.");
+            System.out.println("  Статус клиента: " + selectedStatus.getTitle());
+            System.out.println("  Скидка: " + selectedStatus.getDiscount() + "%");
+            System.out.println("  Сумма скидки: " + discountAmount + " руб.");
+            System.out.println("  Цена со скидкой: " + newFinalPrice + " руб.");
+            System.out.print("\n  Введите сумму для оплаты: ");
+            double amount = scanner.nextDouble();
+
+            if (amount >= newFinalPrice) {
+                selectedOrder.pay(amount);
+
+                List<Order> purchasedOrders = new ArrayList<>();
+                purchasedOrders.add(selectedOrder);
+                double totalDiscount = discountCalculator.calculateDiscount(selectedStatus, selectedOrder.getOriginalPrice());
+
+                Receipt newReceipt = new Receipt(
+                        UUID.randomUUID().toString(),
+                        new Date(),
+                        purchasedOrders,
+                        totalDiscount,
+                        selectedStatus
+                );
+
+                receipts.add(newReceipt);
+                newReceipt.displayReceipt();
+
+                double change = amount - newFinalPrice;
+                if (change > 0) {
+                    System.out.printf("\n Сдача: %.2f руб.\n", change);
+                }
+                System.out.println("\n ПОКУПКА УСПЕШНО ЗАВЕРШЕНА!");
+                System.out.println(" Номер чека: " + newReceipt.getReceiptId());
+            } else {
+                System.out.println(" Недостаточно средств! Нужно: " + newFinalPrice + " руб.");
+                System.out.println("   Не хватает: " + (newFinalPrice - amount) + " руб.");
+            }
+        } else {
+            System.out.println(" Неверный номер заказа!");
+        }
+    }
+
+    private static void displayReceiptsHistory() {
+        if (receipts.isEmpty()) {
+            System.out.println("\n История покупок пуста");
+            return;
+        }
+
+        System.out.println("\n   ИСТОРИЯ ПОКУПОК   ");
+        System.out.println("Всего чеков: " + receipts.size());
+        for (int i = 0; i < receipts.size(); i++) {
+            System.out.println("\n[" + i + "]");
+            receipts.get(i).displayReceipt();
+        }
     }
 
     private static void checkClientWithStrategy(ClientStatus status, ClientStatusChecker checker,
@@ -333,11 +459,11 @@ public class Main {
 // 10.5) Immutable object - использовать для создания чека покупки (создать для этого новый объект, который будет сохранять покупки).
 // ---Отметки---
 // Памятка о созданных классах и измененых классах чтобы я не путался и не путал другие классы
-// Order.java - FactoryPattern                   - Создан класс заказа
-// OrderFactory.java - FactoryPattern            - Создана фабрика заказов
-// ClientOutputStrategy.java - StrategyPattern   - Стратегии вывода клиентов
-// DiscountCalculator.java - DependencyInjection - Интерфейс и реализация скидок
-// Receipt.java - ImmutableObject	             - Чек покупки
-// Category.java - Singleton                     - Добавлен CategoryManager
+// Order.java - FactoryPattern                   - Создан класс заказа - Что делает: Создает объекты заказов без прямого вызова конструктора.
+// OrderFactory.java - FactoryPattern            - Создана фабрика заказов - Что делает: Создает объекты заказов без прямого вызова конструктора.
+// ClientOutputStrategy.java - StrategyPattern   - Стратегии вывода клиентов - Что делает: Позволяет выбирать алгоритм вывода информации о клиенте во время выполнения.
+// DiscountCalculator.java - DependencyInjection - Интерфейс и реализация скидок - Что делает: Объекты получают свои зависимости извне, а не создают их сами.
+// Receipt.java - ImmutableObject	             - Чек покупки - Что делает: Объект чека нельзя изменить после создания.
+// Category.java - Singleton                     - Добавлен CategoryManager - Что делает: Гарантирует, что существует только один экземпляр класса во всей программе.
 // Product.java	                                 - Добавлен clientStatus
 // Main.java                                     - Интеграция всех Pattern
